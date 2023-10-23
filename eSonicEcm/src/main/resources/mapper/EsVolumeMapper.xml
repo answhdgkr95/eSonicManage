@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.eSonic.ecm.mapper.EsVolumeMapper">
-    <select id="getUsedVolume" parameterType = "string" resultType="com.eSonic.ecm.VO.EsVolumeVO" >
+    <select id="getUsedVolume" parameterType = "com.eSonic.ecm.VO.EsVolumeVO" resultType="com.eSonic.ecm.VO.EsVolumeVO" >
         SELECT
 			TEV.ES_VOLUME_LEFTSIZE esVolumeLeftsize,
 			TEV.ES_VOLUME_NAME esVolumeName,
@@ -25,7 +25,7 @@
         
 			
     </select>
-      <select id="checkVolume" parameterType = "string" resultType="com.eSonic.ecm.VO.EsVolumeVO" >
+      <select id="checkVolume" parameterType = "com.eSonic.ecm.VO.EsVolumeVO" resultType="string" >
       
       SELECT
     		TO_NUMBER(ES_VOLUME_LEFTSIZE) - TO_NUMBER(#{esCreateFileSize}) + TO_NUMBER((
@@ -39,7 +39,13 @@
 		FROM
     		TB_ESONIC_VOL
 		WHERE
-    		ES_VOLUME_ID = # {esVolumeId}
+    		ES_VOLUME_ID =  
+    			(SELECT 
+    				ES_VOLUME_ID 
+    			FROM 
+    				TB_ESONIC_CONT 
+    			WHERE 
+    				ES_CONTENT_ID = #{esContentId})
       
     </select>
     
@@ -70,7 +76,13 @@
         			)
         
         WHERE 
-        	ES_VOLUME_ID = #{esVolumeId}
+        	ES_VOLUME_ID = 
+				(SELECT 
+    				ES_VOLUME_ID 
+    			FROM 
+    				TB_ESONIC_CONT 
+    			WHERE 
+    				ES_CONTENT_ID = #{esContentId})
     </update>
     
     

@@ -35,5 +35,14 @@
         			sysdate
         			)
 	</insert>
+	 <update id="updateEsContentMyBatis" parameterType="com.eSonic.ecm.VO.EsContentVO">
+        UPDATE 
+        	TB_ESONIC_CONT
+        SET
+        	ES_FILE_SIZE = #{esFileSize}
+        WHERE 
+        	ES_CONTENT_ID = #{esContentId}
+    </update>
+	
 	
 </mapper>

@@ -170,39 +170,60 @@ public class TcpServer {
 
 				// 스토리지 사이즈 변경
 				// DB 에 volume 업데이트
-				String rtnStrUdt = updateVolumeUdt(g_Used_Volume, fileSizeUS, esContentIdU);
+				String rtnStrUdt = updateVolumeUdt( fileSizeUS, esContentIdU);
+				if(!rtnStrUdt.equals("SUCCESS")) {
+					pw.println(rtnStrUdt); // send response to client
 
-				// 파일사이즈 변경
+					break;
+					
+				}else {
+					HashMap<String, String> hm = new HashMap<String, String>();
+					hm.put("esFileSize", fileSizeUS);
+					hm.put("esContentId", esContentIdU);
 
-				System.out.println("esContentIdU : " + esContentIdU);
-				// elementid 로 이미지경로 가져오는부분 필요함
-				String esContentPathU = selectFile(esContentIdU);
-				// 다운로드 로그 찍는부분 필요함
-				File fileUdt = new File(esContentPathU);
+					// Gson 객체 생성
+					Gson gson = new Gson();
 
-				// 파일 저장
-				fileUdt.delete();
+					// HashMap을 JSON 문자열로 변환
+					String jsonInputString = gson.toJson(hm);
+					rtnStrUdt = updateEsContent(  jsonInputString);
+					// 파일사이즈 변경
 
-				FileOutputStream fos = new FileOutputStream(esContentPathU);
+					System.out.println("rtnStrUdt : " + rtnStrUdt);
+					
+					
+					// elementid 로 이미지경로 가져오는부분 필요함
+					String esContentPathU = selectFile(esContentIdU);
+					// 다운로드 로그 찍는부분 필요함
+					
+					
+					File fileUdt = new File(esContentPathU);
 
-				System.out.println("savePath : " + esContentPathU);
-				byte[] buffer = new byte[4096];
-				int read;
-				long totalRead = 0L;
+					// 파일 저장
+					fileUdt.delete();
 
-				while (totalRead < fileSizeU) {
-					read = dis.read(buffer);
-					totalRead += read;
-					fos.write(buffer, 0, read);
+					FileOutputStream fos = new FileOutputStream(esContentPathU);
+
+					System.out.println("savePath : " + esContentPathU);
+					byte[] buffer = new byte[4096];
+					int read;
+					long totalRead = 0L;
+
+					while (totalRead < fileSizeU) {
+						read = dis.read(buffer);
+						totalRead += read;
+						fos.write(buffer, 0, read);
+					}
+
+					fos.close();
+
+					System.out.println("rtnStr : " + "S");
+
+					pw.println(rtnStrUdt); // send response to client
+
+					break;
 				}
-
-				fos.close();
-
-				System.out.println("rtnStr : " + "S");
-
-				pw.println("S"); // send response to client
-
-				break;
+				
 			case "delete":
 				String esContentIdD = dis.readUTF();
 				System.out.println("esContentIdD : " + esContentIdD);
@@ -287,7 +308,7 @@ public class TcpServer {
 	 */
 	public String insertEsContent(String jsonInputString) {
 		String rtnStr = "";
-		String password = rtnUrlPost(g_Server_Url + "/interface/content/insert", jsonInputString);
+		String password = rtnUrlJson(g_Server_Url + "/interface/content/insert", jsonInputString,"POST");
 
 		Gson gson = new Gson();
 		Map<String, Object> map = null;
@@ -355,7 +376,8 @@ public class TcpServer {
 	 */
 	public String updateEsContent(String jsonInputString) {
 		String rtnStr = "";
-		String password = rtnUrlPost(g_Server_Url + "/interface/content/insert", jsonInputString);
+
+		String password = rtnUrlJson(g_Server_Url + "/interface/content/updateput", jsonInputString, "PUT");
 
 		Gson gson = new Gson();
 		Map<String, Object> map = null;
@@ -387,10 +409,10 @@ public class TcpServer {
 	 * @return String 				업데이트 플래그 jsonString타입 리턴
 	 */
 	@SuppressWarnings("unchecked")
-	public String updateVolumeUdt(String volumeId, String updateFileSize, String esContentId) {
+	public String updateVolumeUdt( String updateFileSize, String esContentId) {
 		String rtnStr = "";
 		rtnStr = rtnUrl(
-				g_Server_Url + "/interface/volume/updaterpc/" + volumeId + "/" + updateFileSize + "/" + esContentId);
+				g_Server_Url + "/interface/volume/updaterpc/" + updateFileSize + "/" + esContentId);
 
 		Gson gson = new Gson();
 		Map<String, Object> map = null;
@@ -623,8 +645,10 @@ public class TcpServer {
 			return null;
 		}
 	}
+
+	
 	@SuppressWarnings("finally")
-	public String rtnUrlPost(String strUrl, String jsonInputString) {
+	public String rtnUrlJson(String strUrl, String jsonInputString, String type) {
 		String rtnStr = "";
 		try {
 			URL url = new URL(strUrl);
@@ -632,7 +656,7 @@ public class TcpServer {
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
 			// POST 요청 설정
-			conn.setRequestMethod("POST");
+			conn.setRequestMethod(type);
 			conn.setDoOutput(true);
 
 			// Content-Type 헤더 설정
@@ -645,7 +669,6 @@ public class TcpServer {
 			}
 
 			int responseCode = conn.getResponseCode();
-			System.out.println(responseCode);
 			// HTTP 응답 본문 읽기
 			BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			String inputLine;

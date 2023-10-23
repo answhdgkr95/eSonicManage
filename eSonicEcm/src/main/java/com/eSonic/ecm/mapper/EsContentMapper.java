@@ -11,5 +11,7 @@ public interface EsContentMapper {
 	 
 	
 	int insertEsContentMyBatis(EsContentVO esContentVO);
-	 
+	
+	int updateEsContentMyBatis(EsContentVO esContentVO);
+	
 }

@@ -62,6 +62,34 @@ public class EsContentService {
 		
 	}
 	
+	@SuppressWarnings("finally")
+	public EsInterfaceDTO updateputEsContentMyBatis(EsContentVO esContentVO) {
+		EsInterfaceDTO esInterfaceDTO = new EsInterfaceDTO();
+		try {
+			 int a = esContentMapper.updateEsContentMyBatis(esContentVO);
+			 if(a==1) {
+				 esInterfaceDTO.setRtnCode("01");
+				 esInterfaceDTO.setRtnMsg("SUCCESS");
+				 esInterfaceDTO.setContentKey(esContentVO.getEsContentId());
+			 }else {
+				 esInterfaceDTO.setRtnCode("00");
+				 esInterfaceDTO.setRtnMsg("ALREADYDATA");
+				 esInterfaceDTO.setContentKey("0");
+			 }
+		}catch(Exception e) {
+
+			 esInterfaceDTO.setRtnCode("02");
+			 esInterfaceDTO.setRtnMsg("EXCEPTION");
+			 esInterfaceDTO.setContentKey("-1");
+			 e.printStackTrace();
+		}finally {
+			
+			 return esInterfaceDTO;
+		}
+		
+	}
+	
+	
 	
 	//Controller 사용
 
