@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eSonic.ecm.mapper.EsVolumeMapper">
+    <select id="getUsedVolume" parameterType = "string" resultType="com.eSonic.ecm.VO.EsVolumeVO" >
+        SELECT
+			TEV.ES_VOLUME_LEFTSIZE esVolumeLeftsize,
+			TEV.ES_VOLUME_NAME esVolumeName,
+			TEV.ES_VOLUME_ID esVolumeId,
+			TEA.ES_ARCHIVE_NAME esArchiveName
+			
+		FROM
+			(
+			SELECT
+				 * 
+			FROM 
+				TB_ESONIC_VOL 
+			ORDER BY 
+				ES_VOLUME_ID
+							) TEV,
+			TB_ESONIC_ARCHIVE TEA
+		WHERE
+			 TEA.ES_ARCHIVE_ID = #{esArchiveId}
+			 AND TO_NUMBER(TEV.ES_VOLUME_LEFTSIZE) > TO_NUMBER(#{esFileSize})
+			 AND ROWNUM = 1
+        
+			
+    </select>
+      <select id="checkVolume" parameterType = "string" resultType="com.eSonic.ecm.VO.EsVolumeVO" >
+      
+      SELECT
+    		TO_NUMBER(ES_VOLUME_LEFTSIZE) - TO_NUMBER(#{esCreateFileSize}) + TO_NUMBER((
+        		SELECT
+            		ES_FILE_SIZE
+        		FROM
+            		TB_ESONIC_CONT
+        		WHERE
+            		ES_CONTENT_ID = #{esContentId}
+    		)) as LEFTSIZE
+		FROM
+    		TB_ESONIC_VOL
+		WHERE
+    		ES_VOLUME_ID = # {esVolumeId}
+      
+    </select>
+    
+    <update id="updateVolume" parameterType="com.eSonic.ecm.VO.EsVolumeVO">
+        UPDATE 
+        	TB_ESONIC_VOL
+        SET
+        
+        			ES_VOLUME_LEFTSIZE = (ES_VOLUME_TOTSIZE - ES_VOLUME_USESIZE 
+        			<if test="esCreateFileSize != null">
+        			
+        			- TO_NUMBER(#{esCreateFileSize})
+        			</if>
+        			<if test="esRemoveFileSize != null">
+        			
+        			+ TO_NUMBER(#{esRemoveFileSize})
+        			</if>
+        			),
+        			ES_VOLUME_USESIZE = (ES_VOLUME_TOTSIZE - ES_VOLUME_LEFTSIZE
+        			<if test="esCreateFileSize != null">
+        			
+        			+ TO_NUMBER(#{esCreateFileSize})
+        			</if>
+        			<if test="esRemoveFileSize != null">
+        			
+        			- TO_NUMBER(#{esRemoveFileSize})
+        			</if>
+        			)
+        
+        WHERE 
+        	ES_VOLUME_ID = #{esVolumeId}
+    </update>
+    
+    
+    
+    
+    
+</mapper>

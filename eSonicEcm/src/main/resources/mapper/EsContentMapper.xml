@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eSonic.ecm.mapper.EsContentMapper">
+	<insert id="insertEsContentMyBatis" parameterType="com.eSonic.ecm.VO.EsContentVO">
+		INSERT INTO
+    		ESONICECM.TB_ESONIC_CONT 
+    		(
+        			ES_CONTENT_ID,
+        			ES_FILE_PATH,
+        			<if test="esArchiveId != null">ES_ARCHIVE_ID,</if>
+        			<if test="esFileSize != null">ES_FILE_SIZE,</if>
+        			<if test="esCreateUser != null">ES_CREATE_USER,</if>
+        			<if test="esLastAccessUser != null">ES_LAST_ACCESS_USER,</if>
+        			<if test="esFileExt != null">ES_FILE_EXT,</if>
+        			<if test="esContentClassId != null">ES_CONTENT_CLASS_ID,</if>
+        			ES_VOLUME_ID,
+        			ES_CREATE_DATE,
+        			ES_LAST_ACCESS,
+        			ES_WRITE_DATE
+        			)
+        
+		VALUES
+		(
+        			#{esContentId},
+        			#{esFilePath},
+        			<if test="esArchiveId != null">#{esArchiveId},</if>
+        			<if test="esFileSize != null">TO_NUMBER(#{esFileSize}),</if>
+        			<if test="esCreateUser != null">#{esCreateUser},</if>
+        			<if test="esLastAccessUser != null">#{esLastAccessUser},</if>
+        			<if test="esFileExt != null">#{esFileExt},</if>
+        			<if test="esContentClassId != null">#{esContentClassId},</if>
+        			#{esVolumeId},
+        			sysdate,
+        			sysdate,
+        			sysdate
+        			)
+	</insert>
+	
+</mapper>
