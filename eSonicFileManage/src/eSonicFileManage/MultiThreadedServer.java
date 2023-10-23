@@ -8,6 +8,7 @@ public class MultiThreadedServer {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(2102);
 
+		//연결이 추가될때마다 Thread로 접속추가
         while (true) {
             Socket clientSocket = serverSocket.accept();
             new Thread(new ClientHandler(clientSocket)).start();
@@ -30,7 +31,5 @@ class ClientHandler implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        // 여기에 클라이언트와의 통신 코드를 작성하세요.
-        // 예를 들어, 파일을 전송하거나 받는 코드를 여기에 작성할 수 있습니다.
     }
 }
