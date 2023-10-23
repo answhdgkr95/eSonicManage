@@ -53,17 +53,17 @@ public class EsVolumeInterface {
 	    
 	    
 	}
-	@GetMapping("/updaterpc/{esVolumeId}/{esUpdateFileSize}/{esContentId}")
+	@GetMapping("/updaterpc/{esUpdateFileSize}/{esContentId}")
 	@ResponseBody
-	public  EsResultVO updateVolumeReplace(@PathVariable String esVolumeId,@PathVariable String esUpdateFileSize,@PathVariable String esContentId,  SessionStatus status) throws Exception {
+	public  EsResultVO updateVolumeReplace(@PathVariable String esUpdateFileSize,@PathVariable String esContentId,  SessionStatus status) throws Exception {
 		
 		
 		
 		EsVolumeVO esVolumeVO = new EsVolumeVO();
-		esVolumeVO.setEsVolumeId(esVolumeId);
 		esVolumeVO.setEsCreateFileSize(esUpdateFileSize);
-
+		System.out.println("EsCreateFileSize : " + esVolumeVO.getEsCreateFileSize());
 		esVolumeVO.setEsContentId(esContentId);
+		System.out.println("esContentId : " + esVolumeVO.getEsContentId());
 		
 		
 	    return esVolumeService.updateVolumeReplace(esVolumeVO);

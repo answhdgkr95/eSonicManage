@@ -39,7 +39,13 @@
 		FROM
     		TB_ESONIC_VOL
 		WHERE
-    		ES_VOLUME_ID = # {esVolumeId}
+    		ES_VOLUME_ID =  
+    			(SELECT 
+    				ES_VOLUME_ID 
+    			FROM 
+    				TB_ESONIC_CONT 
+    			WHERE 
+    				ES_CONTENT_ID = #{esContentId})
       
     </select>
     
@@ -70,7 +76,13 @@
         			)
         
         WHERE 
-        	ES_VOLUME_ID = #{esVolumeId}
+        	ES_VOLUME_ID = 
+				(SELECT 
+    				ES_VOLUME_ID 
+    			FROM 
+    				TB_ESONIC_CONT 
+    			WHERE 
+    				ES_CONTENT_ID = #{esContentId})
     </update>
     
     
