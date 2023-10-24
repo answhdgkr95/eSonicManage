@@ -42,7 +42,7 @@ public class SecurityConfiguration {
 	            .loginProcessingUrl("/login-process")
 	            .usernameParameter("userid")
 	            .passwordParameter("pw")
-	            .defaultSuccessUrl("/view/dashboard", true)
+	            .defaultSuccessUrl("/main", true)
 	            .permitAll()
 	        )
 	        .logout(withDefaults());
