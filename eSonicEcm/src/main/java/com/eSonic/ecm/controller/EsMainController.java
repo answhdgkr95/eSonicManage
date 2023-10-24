@@ -29,5 +29,11 @@ public class EsMainController {
 		
 		return "main";
 	}
+	
+	@RequestMapping(value="/login")
+	public String loginPage(Model model) {
+		
+		return "login";
+	}
 
 }
