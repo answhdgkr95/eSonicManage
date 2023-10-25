@@ -1,6 +1,9 @@
 package com.eSonic.ecm.controller;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.support.SessionStatus;
 
-import com.eSonic.ecm.domain.EsUserDTO;
+import com.eSonic.ecm.VO.EsUserVO;
 import com.eSonic.ecm.domain.EsResultDTO;
+import com.eSonic.ecm.domain.EsUserDTO;
 import com.eSonic.ecm.service.EsUserService;
 
 @Controller
@@ -34,7 +38,7 @@ public class EsUserController {
 	 * */
 	@GetMapping("/search/one/{esUserId}")
 	public String getUser(@PathVariable String esUserId, Model model, SessionStatus status) throws Exception {
-
+		
 		EsResultDTO esResultDTO = esUserService.getUser(esUserId);
 		
 

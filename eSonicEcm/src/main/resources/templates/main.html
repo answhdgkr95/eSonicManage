@@ -1,0 +1,88 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	
+	<!-- css, meta--> 
+	<th:block th:replace="~{common/header.html}"></th:block>
+	
+<body class="sb-nav-fixed">
+	
+	<!-- 상단 nav --> 
+	<th:block th:replace="~{common/nav.html}"></th:block>
+	
+    <div id="layoutSidenav">
+		
+		<!-- 왼쪽 사이드 메뉴 -->
+		<th:block th:replace="~{common/sideNav.html}"></th:block>
+		
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4">Dashboard</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                    
+                    <!-- content 상단 카드 메뉴들 -->
+                    <th:block th:replace="~{dashboard/cards.html}"></th:block>
+                    
+                    <!-- content 차트들 -->
+                    <th:block th:replace="~{dashboard/charts.html}"></th:block>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            UserTable
+                        </div>
+                        <div class="card-body">
+                            <table id="datatablesSimple">
+                                <thead>
+                                    <tr>
+                                        <th>NO</th>
+                                        <th>Id</th>
+                                        <th>Name</th>
+                                        <th>Pw</th>
+                                        <th>InsertDt</th>
+                                        <th>WriteDate</th>
+                                        <th>InsertUser</th>
+                                        <th>UpdateUser</th>
+                                        <th>esEtc</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>NO</th>
+                                        <th>Id</th>
+                                        <th>Name</th>
+                                        <th>Pw</th>
+                                        <th>InsertDt</th>
+                                        <th>WriteDate</th>
+                                        <th>InsertUser</th>
+                                        <th>UpdateUser</th>
+                                        <th>esEtc</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+									<th:block th:each="users, c : ${esResultDTO.esUserEntityList}">
+										<tr>
+											<th scope="row" th:text="${c.count}"></th>
+											<td th:text="${users.esUserId}"></td>
+											<td th:text="${users.esUserName}"></td>
+											<td th:text="${users.esUserPw}"></td>
+											<td th:text="${users.esInsertDt}"></td>
+											<td th:text="${users.esWriteDate}"></td>
+											<td th:text="${users.esInsertUser}"></td>
+											<td th:text="${users.esUpdateUser}"></td>
+											<td th:text="${users.esEtc}"></td>
+										</tr>
+									</th:block>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <th:block th:replace="~{common/footer.html}"></th:block>
+        </div>
+    </div>
+</body>
+<th:block th:replace="~{common/includeJs.html}"></th:block>
+</html>

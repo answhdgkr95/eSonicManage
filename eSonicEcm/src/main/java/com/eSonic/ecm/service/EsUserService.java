@@ -78,9 +78,10 @@ public class EsUserService {
 
 	@SuppressWarnings({ "null", "finally" })
 	public EsResultDTO getUserList(EsUserDTO esUserDTO) {
-		EsResultDTO esResultDTO = null;
+		EsResultDTO esResultDTO = new EsResultDTO();
 		try {
 			List<EsUserEntity> esUserEntity = esUserRepository.findAll();
+			
 			if(esUserEntity==null) {
 				esResultDTO.setRtnCd("0");
 				esResultDTO.setRtnMsg("NODATA");
@@ -96,7 +97,6 @@ public class EsUserService {
 		}catch(Exception e) {
 			esResultDTO.setRtnCd("2");
 			esResultDTO.setRtnMsg(e.getMessage());
-			e.printStackTrace();
 			e.printStackTrace();
 		}
 		finally {
