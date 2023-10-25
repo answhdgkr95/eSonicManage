@@ -171,11 +171,8 @@ public class TcpServer {
 				// 스토리지 사이즈 변경
 				// DB 에 volume 업데이트
 				String rtnStrUdt = updateVolumeUdt( fileSizeUS, esContentIdU);
-<<<<<<< HEAD
 				if(!rtnStrUdt.equals("SUCCESS")) {
 					pw.println(rtnStrUdt); // send response to client
-=======
->>>>>>> refs/remotes/origin/master
 
 					break;
 					
@@ -184,20 +181,8 @@ public class TcpServer {
 					hm.put("esFileSize", fileSizeUS);
 					hm.put("esContentId", esContentIdU);
 
-<<<<<<< HEAD
 					// Gson 객체 생성
 					Gson gson = new Gson();
-=======
-				System.out.println("rtnStrUdt : " + rtnStrUdt);
-				
-				
-				// elementid 로 이미지경로 가져오는부분 필요함
-				String esContentPathU = selectFile(esContentIdU);
-				// 다운로드 로그 찍는부분 필요함
-				
-				
-				File fileUdt = new File(esContentPathU);
->>>>>>> refs/remotes/origin/master
 
 					// HashMap을 JSON 문자열로 변환
 					String jsonInputString = gson.toJson(hm);
@@ -238,18 +223,6 @@ public class TcpServer {
 
 					break;
 				}
-<<<<<<< HEAD
-				
-=======
-
-				fos.close();
-
-				System.out.println("rtnStr : " + "S");
-
-				pw.println(rtnStrUdt); // send response to client
-
-				break;
->>>>>>> refs/remotes/origin/master
 			case "delete":
 				String esContentIdD = dis.readUTF();
 				System.out.println("esContentIdD : " + esContentIdD);
