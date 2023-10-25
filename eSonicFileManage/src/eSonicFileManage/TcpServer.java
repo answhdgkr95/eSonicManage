@@ -170,14 +170,18 @@ public class TcpServer {
 
 				// 스토리지 사이즈 변경
 				// DB 에 volume 업데이트
-				String rtnStrUdt = updateVolumeUdt(g_Used_Volume, fileSizeUS, esContentIdU);
+				String rtnStrUdt = updateVolumeUdt( fileSizeUS, esContentIdU);
 
 				// 파일사이즈 변경
 
-				System.out.println("esContentIdU : " + esContentIdU);
+				System.out.println("rtnStrUdt : " + rtnStrUdt);
+				
+				
 				// elementid 로 이미지경로 가져오는부분 필요함
 				String esContentPathU = selectFile(esContentIdU);
 				// 다운로드 로그 찍는부분 필요함
+				
+				
 				File fileUdt = new File(esContentPathU);
 
 				// 파일 저장
@@ -200,7 +204,7 @@ public class TcpServer {
 
 				System.out.println("rtnStr : " + "S");
 
-				pw.println("S"); // send response to client
+				pw.println(rtnStrUdt); // send response to client
 
 				break;
 			case "delete":
@@ -387,10 +391,10 @@ public class TcpServer {
 	 * @return String 				업데이트 플래그 jsonString타입 리턴
 	 */
 	@SuppressWarnings("unchecked")
-	public String updateVolumeUdt(String volumeId, String updateFileSize, String esContentId) {
+	public String updateVolumeUdt( String updateFileSize, String esContentId) {
 		String rtnStr = "";
 		rtnStr = rtnUrl(
-				g_Server_Url + "/interface/volume/updaterpc/" + volumeId + "/" + updateFileSize + "/" + esContentId);
+				g_Server_Url + "/interface/volume/updaterpc/" + updateFileSize + "/" + esContentId);
 
 		Gson gson = new Gson();
 		Map<String, Object> map = null;
