@@ -24,8 +24,9 @@ repositories {
 
 dependencies {
 
-
-
+	//Redis 의존성 추가 (NoSQL)
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	
     // Gson 의존성 추가
     implementation 'com.google.code.gson:gson:2.9.0'
 

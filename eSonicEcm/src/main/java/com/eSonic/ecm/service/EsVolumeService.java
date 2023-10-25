@@ -100,6 +100,7 @@ public class EsVolumeService {
 	public EsResultVO updateVolumeReplace(EsVolumeVO esVolumeVO) {
 		EsResultVO esResultVO = new EsResultVO();
 		try {
+			System.out.println("volume : " + esVolumeMapper.checkVolume(esVolumeVO));
 			//남은용량이 얼마나 있는지 체크해야함 
 			if(Integer.parseInt(esVolumeMapper.checkVolume(esVolumeVO)) < 0) {
 				

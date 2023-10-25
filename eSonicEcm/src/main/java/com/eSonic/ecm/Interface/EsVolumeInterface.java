@@ -58,7 +58,8 @@ public class EsVolumeInterface {
 	public  EsResultVO updateVolumeReplace(@PathVariable String esUpdateFileSize,@PathVariable String esContentId,  SessionStatus status) throws Exception {
 		
 		
-		
+
+		System.out.println("EsContentId : " + esContentId);
 		EsVolumeVO esVolumeVO = new EsVolumeVO();
 		esVolumeVO.setEsCreateFileSize(esUpdateFileSize);
 		System.out.println("EsCreateFileSize : " + esVolumeVO.getEsCreateFileSize());
