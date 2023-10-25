@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eSonic.ecm.mapper.EsVolumeMapper">
+    <select id="getUsedVolume" parameterType = "string" resultType="com.eSonic.ecm.VO.EsVolumeVO" >
+        SELECT
+			TEV.ES_VOLUME_LEFTSIZE,
+			TEV.ES_VOLUME_NAME,
+			TEA.
+			
+		FROM
+			TB_ESONIC_VOL TEV,
+			TB_ESONIC_ARCHIVE TEA
+			
+		WHERE
+			TEA.ES_ARCHIVE_ID = #{ARCHIVE_ID}
+			AND TEV.ES_VOLUME_ID = TEV.ES_VOLUME_ID
+			
+    </select>
+    
+    
+    <update id="updateUsedVolume" parameterType="com.eSonic.ecm.VO.EsVolumeVO">
+        UPDATE 
+        	TB_ESONIC_VOL
+        SET
+        	ES_VOLUME_LEFTSIZE = (ES_VOLUME_TOTSIZE - ES_VOLUME_USESIZE - #{filesize}),
+        	ES_VULUME_USE_SIZE = (ES_VOLUME_TOTSIZE - ES_VOLUME_LEFTSIZE + #{filesize})
+        WHERE 
+        	ES_VOLUME_ID = #{ES_VOLUME_ID}
+    </update>
+    
+    
+</mapper>
