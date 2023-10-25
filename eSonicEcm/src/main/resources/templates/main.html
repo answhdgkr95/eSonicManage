@@ -1,17 +1,17 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 	
 	<!-- css, meta--> 
-	<th:block th:replace="common/header.html"></th:block>
+	<th:block th:replace="~{common/header.html}"></th:block>
 	
 <body class="sb-nav-fixed">
 	
 	<!-- 상단 nav --> 
-	<th:block th:replace="common/nav.html"></th:block>
+	<th:block th:replace="~{common/nav.html}"></th:block>
 	
     <div id="layoutSidenav">
 		
 		<!-- 왼쪽 사이드 메뉴 -->
-		<th:block th:replace="common/sideNav.html"></th:block>
+		<th:block th:replace="~{common/sideNav.html}"></th:block>
 		
         <div id="layoutSidenav_content">
             <main>
@@ -22,10 +22,10 @@
                     </ol>
                     
                     <!-- content 상단 카드 메뉴들 -->
-                    <th:block th:replace="dashboard/cards.html"></th:block>
+                    <th:block th:replace="~{dashboard/cards.html}"></th:block>
                     
                     <!-- content 차트들 -->
-                    <th:block th:replace="dashboard/charts.html"></th:block>
+                    <th:block th:replace="~{dashboard/charts.html}"></th:block>
                     
                     <div class="card mb-4">
                         <div class="card-header">
@@ -39,10 +39,12 @@
                                         <th>NO</th>
                                         <th>Id</th>
                                         <th>Name</th>
-                                        <th>Age</th>
-                                        <th>Office</th>
-                                        <th>Start date</th>
-                                        <th>Salary</th>
+                                        <th>Pw</th>
+                                        <th>InsertDt</th>
+                                        <th>WriteDate</th>
+                                        <th>InsertUser</th>
+                                        <th>UpdateUser</th>
+                                        <th>esEtc</th>
                                     </tr>
                                 </thead>
                                 <tfoot>
@@ -50,22 +52,26 @@
                                         <th>NO</th>
                                         <th>Id</th>
                                         <th>Name</th>
-                                        <th>Age</th>
-                                        <th>Office</th>
-                                        <th>Start date</th>
-                                        <th>Salary</th>
+                                        <th>Pw</th>
+                                        <th>InsertDt</th>
+                                        <th>WriteDate</th>
+                                        <th>InsertUser</th>
+                                        <th>UpdateUser</th>
+                                        <th>esEtc</th>
                                     </tr>
                                 </tfoot>
                                 <tbody>
-									<th:block th:each="tList, c : ${tList}">
+									<th:block th:each="users, c : ${esResultDTO.esUserEntityList}">
 										<tr>
 											<th scope="row" th:text="${c.count}"></th>
-											<td th:text="${tList.userId}"></td>
-											<td th:text="${tList.userName}"></td>
-											<td th:text="${tList.userAge}"></td>
-											<td>61</td>
-                                            <td>2011/04/25</td>
-                                            <td>$320,800</td>
+											<td th:text="${users.esUserId}"></td>
+											<td th:text="${users.esUserName}"></td>
+											<td th:text="${users.esUserPw}"></td>
+											<td th:text="${users.esInsertDt}"></td>
+											<td th:text="${users.esWriteDate}"></td>
+											<td th:text="${users.esInsertUser}"></td>
+											<td th:text="${users.esUpdateUser}"></td>
+											<td th:text="${users.esEtc}"></td>
 										</tr>
 									</th:block>
                                 </tbody>
@@ -74,9 +80,9 @@
                     </div>
                 </div>
             </main>
-            <th:block th:replace="common/footer.html"></th:block>
+            <th:block th:replace="~{common/footer.html}"></th:block>
         </div>
     </div>
-    <th:block th:replace="common/includeJs.html"></th:block>
 </body>
+<th:block th:replace="~{common/includeJs.html}"></th:block>
 </html>

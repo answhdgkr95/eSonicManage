@@ -29,7 +29,7 @@ public class SecurityConfiguration{
 	    AntPathRequestMatcher interfaceMatcher = new AntPathRequestMatcher("/interface/**");
 	    AntPathRequestMatcher authJoinMatcher = new AntPathRequestMatcher("/auth/join");
 	    AntPathRequestMatcher styleMatcher = new AntPathRequestMatcher("/css/**");
-	    AntPathRequestMatcher jsMatcher = new AntPathRequestMatcher("js/**");
+	    AntPathRequestMatcher jsMatcher = new AntPathRequestMatcher("/js/**");
 	    
 
 	    http.csrf().disable().cors().disable()
@@ -57,7 +57,7 @@ public class SecurityConfiguration{
 		@SuppressWarnings("deprecation")
 		UserDetails user = User.withDefaultPasswordEncoder()
 				.username("rosis")
-				.password("rosis6530!")
+				.password("1")
 				.roles("USER")
 				.build();
 		return new InMemoryUserDetailsManager(user);
