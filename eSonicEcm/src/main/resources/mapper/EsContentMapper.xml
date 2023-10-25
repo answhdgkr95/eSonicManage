@@ -40,7 +40,7 @@
         	TB_ESONIC_CONT
         SET
         	ES_FILE_SIZE = #{esFileSize}
-        	AND ES_LAST_ACCESS = sysdate
+        	, ES_LAST_ACCESS = sysdate
         	
         WHERE 
         	ES_CONTENT_ID = #{esContentId}

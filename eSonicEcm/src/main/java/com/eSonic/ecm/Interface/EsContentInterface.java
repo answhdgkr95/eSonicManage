@@ -69,6 +69,7 @@ public class EsContentInterface {
 	}
 
 	@PutMapping("/updateput")
+	@ResponseBody
 	public EsInterfaceDTO updatePut( @RequestBody EsContentVO esContentVO) {
 		System.out.println("esContentVO : " + esContentVO);
 		EsInterfaceDTO esInterfaceDTO = esContentService.updateputEsContentMyBatis(esContentVO);
