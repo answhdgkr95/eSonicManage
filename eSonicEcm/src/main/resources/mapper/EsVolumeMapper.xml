@@ -76,13 +76,18 @@
         			)
         
         WHERE 
+        			
         	ES_VOLUME_ID = 
+        	<if test="esContentId != null">
 				(SELECT 
     				ES_VOLUME_ID 
     			FROM 
     				TB_ESONIC_CONT 
     			WHERE 
     				ES_CONTENT_ID = #{esContentId})
+        			</if>
+        			
+        	<if test="esVolumeId != null"> #{esVolumeId}</if>
     </update>
     
     
