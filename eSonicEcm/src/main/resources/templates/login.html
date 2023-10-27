@@ -1,7 +1,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
     
     <!-- css, meta--> 
-	<th:block th:replace="common/header.html"></th:block>
+	<th:block th:replace="~{common/header.html}"></th:block>
 
     <body class="bg-primary">
         <div id="layoutAuthentication">
@@ -30,7 +30,7 @@
                                                 <a class="small" href="password.html">Forgot Password?</a>
                                                 <a class="btn btn-primary" id="loginBtn">Login</a>
                                             </div>
-                                        </form>
+                                        </form> 
                                     </div>
                                     <div class="card-footer text-center py-3">
                                         <div class="small"><a href="register.html">Need an account? Sign up!</a></div>
@@ -42,9 +42,9 @@
                 </main>
             </div>
             <div id="layoutAuthentication_footer">
-                <th:block th:replace="common/footer.html"></th:block>
+                <th:block th:replace="~{common/footer.html}"></th:block>
             </div>
         </div>
-        <th:block th:replace="common/includeJs.html"></th:block>
+        <th:block th:replace="~{common/includeJs.html}"></th:block>
     </body>
 </html>

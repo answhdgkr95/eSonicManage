@@ -39,7 +39,7 @@ public class SecurityConfiguration{
 	            .anyRequest().authenticated()
 	        )
 	        .formLogin(login -> login
-//	            .loginPage("/login")
+	            .loginPage("/login")
 	            .loginProcessingUrl("/login-process")
 	            .usernameParameter("userid")
 	            .passwordParameter("pw")
