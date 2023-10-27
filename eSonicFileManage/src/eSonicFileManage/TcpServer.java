@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -37,16 +38,14 @@ public class TcpServer {
 	public String g_Used_Volume = "";
 
 	/**
-	 * 파일관리 서버로의 연결이 생성될시 실행되는 소스
-	 * connect				userId,Password -> 연결 
-	 * create				file -> 파일업로드 후 contentId 리턴
-	 * download				contentId -> 다운로드
-	 * update				contentId, file -> 파일변경
-	 * delete				contentId -> 삭제
-	 * @param  socket	 	 Thread 처리를 위해 생성된 각각의 연결정보
+	 * 파일관리 서버로의 연결이 생성될시 실행되는 소스 connect userId,Password -> 연결 create file -> 파일업로드
+	 * 후 contentId 리턴 download contentId -> 다운로드 update contentId, file -> 파일변경
+	 * delete contentId -> 삭제
+	 * 
+	 * @param socket Thread 처리를 위해 생성된 각각의 연결정보
 	 */
 	@SuppressWarnings("resource")
-	public void runServer(Socket socket) throws IOException {
+	public void runServer(Socket socket, int threadCnt) throws IOException {
 
 		DataInputStream dis = new DataInputStream(socket.getInputStream());
 		DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
@@ -62,87 +61,197 @@ public class TcpServer {
 		switch (rtnUserSearch) {
 		case "SUCCESS":
 
-			pw.println(rtnUserSearch); // send response to client
+			pw.println(threadCnt); // send response to client
+			try {
 
-			getValue = dis.readUTF();
+				while (!(getValue = dis.readUTF()).equals("disconnect")) {
+					switch (getValue) {
+					case "create":
+						// create ();
+						getValue = dis.readUTF();
+						String volumeId = getValue.split("_")[0];
+						// String ext = getValue.split("_")[1];
+						String fileSize = getValue.split("_")[2];
+						long fileSizeL = Long.valueOf(fileSize);
 
-			switch (getValue) {
+						// volumeid 로 저장패스 지정
+						String saveVol = searchVolume(volumeId, fileSize);
+						// elementid 생성
+						String esContentIdC = createFileKey(saveVol);
 
-			case "create":
-				// create ();
-				getValue = dis.readUTF();
-				String volumeId = getValue.split("_")[0];
-				// String ext = getValue.split("_")[1];
-				String fileSize = getValue.split("_")[2];
-				long fileSizeL = Long.valueOf(fileSize);
+						String savePath = saveVol + esContentIdC;
 
-				// volumeid 로 저장패스 지정
-				String saveVol = searchVolume(volumeId, fileSize);
-				// elementid 생성
-				String esContentIdC = createFileKey(saveVol);
+						// DB 에 volume 업데이트
+						String rtnStr = updateVolume(g_Used_Volume, fileSize, "0");
+						if (rtnStr.equals("SUCCESS")) {
+							// 파일 저장
+							FileOutputStream fos = new FileOutputStream(savePath);
 
-				String savePath = saveVol + esContentIdC;
+							System.out.println("savePath : " + savePath);
+							byte[] buffer = new byte[4096];
+							int read;
+							long totalRead = 0L;
 
-				// DB 에 volume 업데이트
-				String rtnStr = updateVolume(g_Used_Volume, fileSize, "0");
-				if (rtnStr.equals("SUCCESS")) {
-					// 파일 저장
-					FileOutputStream fos = new FileOutputStream(savePath);
+							while (totalRead < fileSizeL) {
+								read = dis.read(buffer);
+								totalRead += read;
+								fos.write(buffer, 0, read);
+							}
 
-					System.out.println("savePath : " + savePath);
-					byte[] buffer = new byte[4096];
-					int read;
-					long totalRead = 0L;
+							fos.close();
 
-					while (totalRead < fileSizeL) {
-						read = dis.read(buffer);
-						totalRead += read;
-						fos.write(buffer, 0, read);
+							// DB Insert
+							// ES_FILE_SIZE, ES_ARCHIVE_ID, ES_CONTENT_CLASS, ES_CONTENT_ID, ES_CREATE_USER,
+							// ES_FILE_EXT, ES_FILE_PATH, ES_VOLUME_ID
+							HashMap<String, String> hm = new HashMap<String, String>();
+							hm.put("esFileSize", fileSize);
+							hm.put("esArchiveId", volumeId);
+							hm.put("esContentClass", contentClass);
+							hm.put("esContentId", esContentIdC);
+							hm.put("esCreateUser", id);
+							hm.put("esFilePath", savePath);
+							hm.put("esVolumeId", g_Used_Volume);
+
+							// Gson 객체 생성
+							Gson gson = new Gson();
+
+							// HashMap을 JSON 문자열로 변환
+							String jsonInputString = gson.toJson(hm);
+
+							rtnStr = insertEsContent(jsonInputString);
+							System.out.println("rtnStr : " + rtnStr);
+
+							pw.println(rtnStr); // send response to client
+
+						} else {
+
+							pw.println("0"); // send response to client
+						}
+
+						break;
+					case "download":
+
+						String esContentIdDown = dis.readUTF();
+						// elementid 로 이미지경로 가져오는부분 필요함
+						String filepath = selectFile(esContentIdDown);
+						System.out.println("filepath : " + filepath);
+						// 다운로드 로그 찍는부분 필요함
+						File file = new File(filepath);
+						if (file.exists()) {
+							// 파일 크기와 이름을 클라이언트에게 전송
+							dos.writeLong(file.length());
+
+							// 파일 데이터를 읽어 클라이언트에게 전송
+							FileInputStream fis = new FileInputStream(file);
+							byte[] bufferD = new byte[4096];
+							int readD;
+
+							while ((readD = fis.read(bufferD)) > 0) {
+								dos.write(bufferD, 0, readD);
+							}
+							fis.close();
+							dos.writeUTF("SUCCESS");
+							System.out.println("파일 전송 완료: " + filepath);
+						} else {
+							dos.writeUTF("ERROR");
+							System.out.println("파일이 존재하지 않습니다: " + filepath);
+						}
+						break;
+					case "update":
+						String getValueU = dis.readUTF();
+						System.out.println("getValueU : " + getValueU);
+						String esContentIdU = getValueU.split("_")[0];
+						// String filepathU = getValue.split("_")[1];
+						long fileSizeU = Long.valueOf(getValueU.split("_")[2]);
+						String fileSizeUS = getValueU.split("_")[2];
+
+						// 스토리지 사이즈 변경
+						// DB 에 volume 업데이트
+						String rtnStrUdt = updateVolumeUdt(fileSizeUS, esContentIdU);
+						if (!rtnStrUdt.equals("SUCCESS")) {
+							pw.println(rtnStrUdt); // send response to client
+
+							break;
+
+						} else {
+							HashMap<String, String> hm = new HashMap<String, String>();
+							hm.put("esFileSize", fileSizeUS);
+							hm.put("esContentId", esContentIdU);
+
+							// Gson 객체 생성
+							Gson gson = new Gson();
+
+							// HashMap을 JSON 문자열로 변환
+							String jsonInputString = gson.toJson(hm);
+							rtnStrUdt = updateEsContent(jsonInputString);
+							// 파일사이즈 변경
+
+							System.out.println("rtnStrUdt : " + rtnStrUdt);
+
+							// elementid 로 이미지경로 가져오는부분 필요함
+							String esContentPathU = selectFile(esContentIdU);
+							// 다운로드 로그 찍는부분 필요함
+
+							File fileUdt = new File(esContentPathU);
+
+							// 파일 저장
+							fileUdt.delete();
+
+							FileOutputStream fos = new FileOutputStream(esContentPathU);
+
+							System.out.println("savePath : " + esContentPathU);
+							byte[] buffer = new byte[4096];
+							int read;
+							long totalRead = 0L;
+
+							while (totalRead < fileSizeU) {
+								read = dis.read(buffer);
+								totalRead += read;
+								fos.write(buffer, 0, read);
+							}
+
+							fos.close();
+
+							System.out.println("rtnStr : " + "S");
+
+							pw.println(rtnStrUdt); // send response to client
+
+							break;
+						}
+					case "delete":
+						String esContentIdD = dis.readUTF();
+						System.out.println("esContentIdD : " + esContentIdD);
+
+						// 스토리지 사이즈 변경
+						// DB 에 volume 업데이트
+						String rtnStrDel = deleteContent(esContentIdD);
+
+						System.out.println("rtnStrDel : " + rtnStrDel);
+						// elementid 로 이미지경로 가져오는부분 필요함
+						String esContentPathD = selectFile(esContentIdD);
+						// 다운로드 로그 찍는부분 필요함
+						File fileDel = new File(esContentPathD);
+
+						// 파일 저장
+						fileDel.delete();
+
+						break;
+
 					}
-
-					fos.close();
-
-					// DB Insert
-					// ES_FILE_SIZE, ES_ARCHIVE_ID, ES_CONTENT_CLASS, ES_CONTENT_ID, ES_CREATE_USER,
-					// ES_FILE_EXT, ES_FILE_PATH, ES_VOLUME_ID
-					HashMap<String, String> hm = new HashMap<String, String>();
-					hm.put("esFileSize", fileSize);
-					hm.put("esArchiveId", volumeId);
-					hm.put("esContentClass", contentClass);
-					hm.put("esContentId", esContentIdC);
-					hm.put("esCreateUser", id);
-					hm.put("esFilePath", savePath);
-					hm.put("esVolumeId", g_Used_Volume);
-
-					// Gson 객체 생성
-					Gson gson = new Gson();
-
-					// HashMap을 JSON 문자열로 변환
-					String jsonInputString = gson.toJson(hm);
-
-					rtnStr = insertEsContent(jsonInputString);
-					System.out.println("rtnStr : " + rtnStr);
-
-					pw.println(rtnStr); // send response to client
-
-				} else {
-
-					pw.println("0"); // send response to client
 				}
 
-				break;
-			case "download":
+				System.out.println("Exit");
+				pw.println("0"); // send response to client
+				dos.close();
+				dis.close();
+				pw.close();
+				socket.close();
+				MultiThreadedServer.thcnt--;
+				return;
 
-				String esContentIdDown = dis.readUTF();
-				// elementid 로 이미지경로 가져오는부분 필요함
-				String filepath = selectFile(esContentIdDown);
-				System.out.println("filepathfilepath : " + filepath);
-				// 다운로드 로그 찍는부분 필요함
-				File file = new File(filepath);
-				if (file.exists()) {
-					// 파일 크기와 이름을 클라이언트에게 전송
-					dos.writeLong(file.length());
+			} catch (SocketException e) {
 
+<<<<<<< HEAD
 					// 파일 데이터를 읽어 클라이언트에게 전송
 					FileInputStream fis = new FileInputStream(file);
 					byte[] bufferD = new byte[4096];
@@ -240,32 +349,29 @@ public class TcpServer {
 				fileDel.delete();
 
 				break;
+=======
+>>>>>>> branch 'master' of https://github.com/answhdgkr95/eSonicManage.git
 			}
 
-			break;
-
 		default:
-			System.out.println("Exit");
-			pw.println("0"); // send response to client
-
+			System.out.println("0");
+			dos.close();
 			dis.close();
 			pw.close();
 			socket.close();
+			MultiThreadedServer.thcnt--;
 			return;
 
 		}
 
-		dis.close();
-		pw.close();
-		socket.close();
-
 	}
-	
+
 	/**
 	 * 최초 연결시 유저id 와 pw 로 연결정보 생성
-	 * @param  id					연결정보를 생성할 유저의 ID
-	 * @param  pw					연결정보를 생성할 유저의 PW
-	 * @return String 				연결정보 생성 성공/실패여부
+	 * 
+	 * @param id 연결정보를 생성할 유저의 ID
+	 * @param pw 연결정보를 생성할 유저의 PW
+	 * @return String 연결정보 생성 성공/실패여부
 	 */
 	@SuppressWarnings("unchecked")
 	public String searchUser(String id, String pw) {
@@ -298,15 +404,16 @@ public class TcpServer {
 
 		return rtnStr;
 	}
-	
+
 	/**
 	 * 파일 업로드시 파일에 관한 정보를 Content DB에 등록하기 위한 함수
-	 * @param  jsonInputString		파일에 관한 정보를 jsonString 형태로 전달
-	 * @return String 				업로드플래그 jsonString타입 리턴
+	 * 
+	 * @param jsonInputString 파일에 관한 정보를 jsonString 형태로 전달
+	 * @return String 업로드플래그 jsonString타입 리턴
 	 */
 	public String insertEsContent(String jsonInputString) {
 		String rtnStr = "";
-		String password = rtnUrlJson(g_Server_Url + "/interface/content/insert", jsonInputString,"POST");
+		String password = rtnUrlJson(g_Server_Url + "/interface/content/insert", jsonInputString, "POST");
 
 		Gson gson = new Gson();
 		Map<String, Object> map = null;
@@ -329,11 +436,12 @@ public class TcpServer {
 
 		return rtnStr;
 	}
-	
+
 	/**
 	 * 파일 조회시 콘텐츠아이디로 파일에 관한 내용을 Content DB에서 조회하는 함수
-	 * @param  esContentId	 	 입력받은 콘텐츠아이디로 등록된 파일을 삭제
-	 * @return String 			삭제플래그 jsonString타입 리턴
+	 * 
+	 * @param esContentId 입력받은 콘텐츠아이디로 등록된 파일을 삭제
+	 * @return String 삭제플래그 jsonString타입 리턴
 	 */
 	@SuppressWarnings("unchecked")
 	public String selectFile(String esContentId) {
@@ -366,11 +474,12 @@ public class TcpServer {
 		return rtnStr;
 
 	}
-	
+
 	/**
 	 * 파일 업데이트시 파일에 관한 정보를 Content DB에 업데이트 하기위한 함수
-	 * @param  jsonInputString		업데이트 되는 파일과 기존파일에 관한 정보를 jsonString 형태로 전달
-	 * @return String 				업로드플래그 jsonString타입 리턴
+	 * 
+	 * @param jsonInputString 업데이트 되는 파일과 기존파일에 관한 정보를 jsonString 형태로 전달
+	 * @return String 업로드플래그 jsonString타입 리턴
 	 */
 	public String updateEsContent(String jsonInputString) {
 		String rtnStr = "";
@@ -398,19 +507,19 @@ public class TcpServer {
 
 		return rtnStr;
 	}
-	
+
 	/**
 	 * 파일 업데이트시 파일에 관한 정보를 Volume DB에 업데이트 하기위한 함수
-	 * @param  volumeId				업데이트 할 볼륨의 볼륨 ID
-	 * @param  updateFileSize		업데이트 할 새로운 파일의 파일용량
-	 * @param  esContentId			업데이트 될 파일의 파일 ID (ContentID)
-	 * @return String 				업데이트 플래그 jsonString타입 리턴
+	 * 
+	 * @param volumeId       업데이트 할 볼륨의 볼륨 ID
+	 * @param updateFileSize 업데이트 할 새로운 파일의 파일용량
+	 * @param esContentId    업데이트 될 파일의 파일 ID (ContentID)
+	 * @return String 업데이트 플래그 jsonString타입 리턴
 	 */
 	@SuppressWarnings("unchecked")
-	public String updateVolumeUdt( String updateFileSize, String esContentId) {
+	public String updateVolumeUdt(String updateFileSize, String esContentId) {
 		String rtnStr = "";
-		rtnStr = rtnUrl(
-				g_Server_Url + "/interface/volume/updaterpc/" + updateFileSize + "/" + esContentId);
+		rtnStr = rtnUrl(g_Server_Url + "/interface/volume/updaterpc/" + updateFileSize + "/" + esContentId);
 
 		Gson gson = new Gson();
 		Map<String, Object> map = null;
@@ -434,11 +543,12 @@ public class TcpServer {
 
 		return rtnStr;
 	}
-		
+
 	/**
 	 * 파일 삭제시 콘텐츠아이디로 파일에 관한 내용을 DB에서 삭제하는 함수
-	 * @param  esContentId	 	 입력받은 콘텐츠아이디로 등록된 파일을 삭제
-	 * @return String 			삭제플래그 jsonString타입 리턴
+	 * 
+	 * @param esContentId 입력받은 콘텐츠아이디로 등록된 파일을 삭제
+	 * @return String 삭제플래그 jsonString타입 리턴
 	 */
 	public String deleteContent(String esContentId) {
 		String rtnStr = "";
@@ -469,10 +579,11 @@ public class TcpServer {
 
 	/**
 	 * 파일 업로드 또는 삭제 시 Volume테이블에서 용량을 업데이트 하는 함수
-	 * @param  volumeId	 			업로드 또는 삭제 할 볼륨의 ID
-	 * @param  createFileSize	 	업로드 또는 삭제 될 볼륨의 사용되어야 할 파일사이즈
-	 * @param  removeFileSize	 	업로드 또는 삭제 될 볼륨의 삭제되어야 할 파일사이즈
-	 * @return String 				업로드 또는 삭제 플래그 jsonString타입 리턴
+	 * 
+	 * @param volumeId       업로드 또는 삭제 할 볼륨의 ID
+	 * @param createFileSize 업로드 또는 삭제 될 볼륨의 사용되어야 할 파일사이즈
+	 * @param removeFileSize 업로드 또는 삭제 될 볼륨의 삭제되어야 할 파일사이즈
+	 * @return String 업로드 또는 삭제 플래그 jsonString타입 리턴
 	 */
 	@SuppressWarnings("unchecked")
 	public String updateVolume(String volumeId, String createFileSize, String removeFileSize) {
@@ -502,11 +613,12 @@ public class TcpServer {
 
 		return rtnStr;
 	}
-	
+
 	/**
 	 * 파일 업로드시 파일의 고유ID 를 생성하기 위한 함수
-	 * @param  volumePath	 	파일이 저장될 경로의 정보
-	 * @return String 			경로내부에서 중복되지 않는 파일 고유 ID
+	 * 
+	 * @param volumePath 파일이 저장될 경로의 정보
+	 * @return String 경로내부에서 중복되지 않는 파일 고유 ID
 	 */
 	public String createFileKey(String volumePath) {
 		String rtnFileKey = "";
@@ -539,7 +651,8 @@ public class TcpServer {
 
 	/**
 	 * 파일 업로드시 새로운 디렉토리를 생성하는 함수
-	 * @param  path	 			생성될 디렉토리 정보
+	 * 
+	 * @param path 생성될 디렉토리 정보
 	 */
 	public static void createDirectory(String path) {
 		File directory = new File(path);
@@ -554,9 +667,10 @@ public class TcpServer {
 
 	/**
 	 * 파일 업로드시 공간이 남아있는 볼륨을 선택하는 함수
-	 * @param  ARCHIVE_ID	 		업로드될 Archive(업무 또는 부서) 의 ID
-	 * @param  FileSize	 			업로드할 파일의 사이즈
-	 * @return String				사용가능한 volume의 ID
+	 * 
+	 * @param ARCHIVE_ID 업로드될 Archive(업무 또는 부서) 의 ID
+	 * @param FileSize   업로드할 파일의 사이즈
+	 * @return String 사용가능한 volume의 ID
 	 */
 	@SuppressWarnings("unchecked")
 	public String searchVolume(String ARCHIVE_ID, String FileSize) {
@@ -626,8 +740,9 @@ public class TcpServer {
 
 	/**
 	 * 통신관련 정의
-	 * @apiNote  rtnUrl	 		get방식 호출
-	 * @apiNote  rtnUrlPost	 	post방식 호출
+	 * 
+	 * @apiNote rtnUrl get방식 호출
+	 * @apiNote rtnUrlPost post방식 호출
 	 */
 	private HttpClient client = HttpClient.newHttpClient();
 
@@ -644,7 +759,6 @@ public class TcpServer {
 		}
 	}
 
-	
 	@SuppressWarnings("finally")
 	public String rtnUrlJson(String strUrl, String jsonInputString, String type) {
 		String rtnStr = "";
